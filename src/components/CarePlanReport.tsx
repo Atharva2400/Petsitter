@@ -5,7 +5,7 @@ import {
   Download, ArrowLeft, PawPrint, Stethoscope, Phone,
   UtensilsCrossed, Pill, AlertTriangle, Clock, FileText,
   Sparkles, Heart, Scissors, Brain, ShieldAlert, Droplets,
-  CheckCircle2, Star, Zap,
+  CheckCircle2, Star, Zap, Info, PenLine,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 interface CarePlanReportProps {
   data: GeminiCarePlan;
   onBack: () => void;
+  isSample?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ const Bullet = ({ children }: { children: React.ReactNode }) => (
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-const CarePlanReport = ({ data, onBack }: CarePlanReportProps) => {
+const CarePlanReport = ({ data, onBack, isSample = false }: CarePlanReportProps) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
   const downloadPDF = async () => {
@@ -70,7 +71,10 @@ const CarePlanReport = ({ data, onBack }: CarePlanReportProps) => {
       pdf.addImage(imgData, "PNG", 0, -position, pdfWidth, totalHeight);
       position += pdfHeight;
     }
-    pdf.save(`${data.petName || "pet"}-care-plan.pdf`);
+    const filename = isSample
+      ? "SAMPLE-buddy-golden-retriever-care-plan.pdf"
+      : `${data.petName || "pet"}-care-plan.pdf`;
+    pdf.save(filename);
   };
 
   const hasAiContent = data.model !== undefined;
@@ -78,35 +82,81 @@ const CarePlanReport = ({ data, onBack }: CarePlanReportProps) => {
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4">
+
+        {/* ── Sample Report Notice Banner ─────────────────────────────── */}
+        {isSample && (
+          <div className="max-w-4xl mx-auto mb-6 rounded-2xl border-2 border-amber-400/60 bg-amber-50 dark:bg-amber-950/30 p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
+                <Info className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="font-extrabold text-amber-800 dark:text-amber-300 text-base mb-1">
+                  📋 You are viewing a SAMPLE REPORT
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
+                  This is a demo care plan generated for a sample Golden Retriever named <strong>Buddy</strong>. It shows you exactly what your personalised plan will look like.
+                  To generate and download your own pet's plan, go back and fill in your pet's details. The downloaded PDF will also be stamped with <strong>"SAMPLE REPORT"</strong>.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-amber-400/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 font-bold"
+                onClick={onBack}
+              >
+                <PenLine className="h-4 w-4 mr-2" />
+                Fill My Pet's Details
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Top Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 max-w-4xl mx-auto">
           <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Edit Details
+            <ArrowLeft className="h-4 w-4 mr-2" /> {isSample ? "Back to Form" : "Edit Details"}
           </Button>
           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 border border-primary/20 rounded-full px-4 py-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            AI-powered plan — personalised for {data.petName}
+            {isSample ? (
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">⚠️ Sample Report — Fill form for your pet's plan</span>
+            ) : (
+              <>AI-powered plan — personalised for {data.petName}</>
+            )}
           </div>
-          <Button onClick={downloadPDF} className="font-bold">
-            <Download className="h-4 w-4 mr-2" /> Download PDF
+          <Button onClick={downloadPDF} className="font-bold" variant={isSample ? "outline" : "default"}>
+            <Download className="h-4 w-4 mr-2" /> {isSample ? "Download Sample PDF" : "Download PDF"}
           </Button>
         </div>
 
         {/* Report Content */}
         <div ref={reportRef} className="max-w-4xl mx-auto bg-background rounded-2xl border shadow-card overflow-hidden">
 
+          {/* ── Sample Watermark Header ──────────────────────────────── */}
+          {isSample && (
+            <div className="bg-amber-400/90 dark:bg-amber-600/90 py-3 px-6 text-center">
+              <p className="text-amber-900 dark:text-amber-100 font-extrabold text-sm tracking-widest uppercase">
+                ⚠️ SAMPLE REPORT — For demonstration purposes only. Fill in your pet's details to get your personalised plan.
+              </p>
+            </div>
+          )}
+
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="gradient-hero p-8 text-center border-b">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 mb-4">
               <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm font-bold text-primary">AI-Generated Pet Care Plan</span>
+              <span className="text-sm font-bold text-primary">
+                {isSample ? "📋 Sample AI-Generated Pet Care Plan" : "AI-Generated Pet Care Plan"}
+              </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
               {data.petName}'s Care Plan 🐾
             </h1>
             <p className="text-muted-foreground text-sm">
               Generated on {new Date(data.generatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-              {data.model && data.model !== "fallback" && <span className="ml-2 text-primary">• {data.model}</span>}
+              {data.model && data.model !== "fallback" && data.model !== "sample" && <span className="ml-2 text-primary">• {data.model}</span>}
+              {isSample && <span className="ml-2 font-bold text-amber-600 dark:text-amber-400"> • SAMPLE DATA</span>}
             </p>
           </div>
 

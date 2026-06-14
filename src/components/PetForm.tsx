@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PawPrint, Plus, Trash2 } from "lucide-react";
+import { PawPrint, Plus, Trash2, FileDown, Info } from "lucide-react";
 
 export interface PetFormData {
   petName: string;
@@ -53,9 +53,10 @@ const initialData: PetFormData = {
 
 interface PetFormProps {
   onGenerate: (data: PetFormData) => void;
+  onSamplePreview: () => void;
 }
 
-const PetForm = ({ onGenerate }: PetFormProps) => {
+const PetForm = ({ onGenerate, onSamplePreview }: PetFormProps) => {
   const [data, setData] = useState<PetFormData>(initialData);
 
   const set = (field: keyof PetFormData, value: string) =>
@@ -97,6 +98,29 @@ const PetForm = ({ onGenerate }: PetFormProps) => {
           <p className="text-muted-foreground max-w-md mx-auto">
             Enter your pet's information and we'll generate a complete care plan you can download as PDF.
           </p>
+
+          {/* Sample Report CTA */}
+          <div className="mt-8 max-w-xl mx-auto rounded-2xl border border-primary/20 bg-primary/5 p-5 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Info className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left flex-1">
+              <p className="text-sm font-bold text-foreground mb-0.5">Want to see what the report looks like first?</p>
+              <p className="text-xs text-muted-foreground">
+                Click <strong>"View Sample Report"</strong> to preview a fully generated care plan for a sample Golden Retriever named Buddy. The PDF will be clearly marked as a <strong>SAMPLE REPORT</strong> and will not include your personal details.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 border-primary/40 text-primary hover:bg-primary/10 font-bold"
+              onClick={onSamplePreview}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              View Sample Report
+            </Button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8">
